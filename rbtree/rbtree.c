@@ -138,7 +138,8 @@ void rb_remove(RB_ROOT *root, RB_NODE *node)
 {
     RB_NODE *replacement;
     RB_NODE *transplanter;
-    RB_NODE *parent = rb_parent(node);
+    RB_NODE *parent;
+    RB_NODE *node_parent = rb_parent(node);
     int deleted_color = rb_color(node);
     if (node->rb_child[RB_LEFT] == NULL) /* node has at most one right child */
     {
@@ -146,14 +147,16 @@ void rb_remove(RB_ROOT *root, RB_NODE *node)
         replacement = transplanter;
         if (transplanter != NULL)
         {
-            rb_set_parent(transplanter, parent);
+            rb_set_parent(transplanter, node_parent);
         }
+        parent = node_parent;
     }
     else if (node->rb_child[RB_RIGHT] == NULL) /* node has one left child */
     {
         transplanter = node->rb_child[RB_LEFT];
         replacement = transplanter;
-        rb_set_parent(transplanter, parent);
+        rb_set_parent(transplanter, node_parent);
+        parent = node_parent;
     }
     else /* node has two children */
     {
@@ -188,9 +191,9 @@ void rb_remove(RB_ROOT *root, RB_NODE *node)
         successor->rb_parent_color = node->rb_parent_color;
         transplanter = successor;
     }
-    if (parent != NULL)
+    if (node_parent != NULL)
     {
-        rb_change_child(parent, node, transplanter);
+        rb_change_child(node_parent, node, transplanter);
     }
     else
     {
