@@ -151,12 +151,16 @@ static void test_rbtree_insert_right(void **state __UNUSED)
 
 void shuffle(A_NODE **buf, const int N)
 {
-    int i;
-    for (i = 0; i < N * 4; ++i)
+    int repeat;
+    for (repeat = 0; repeat < N * 2; ++repeat)
     {
-        int j = rand() % N;
-        A_NODE *t = buf[0];
-        buf[0] = buf[j];
+        int i = rand() % N;
+        int j = rand() % (N - 1);
+        if (j >= i) {
+            j += 1;
+        }
+        A_NODE *t = buf[i];
+        buf[i] = buf[j];
         buf[j] = t;
     }
 }
@@ -173,14 +177,18 @@ static void test_rbtree_insert_random(void **state __UNUSED)
         node[i] = &node_buf[i];
     }
 
-    shuffle(node, N);
-    RB_ROOT root = RB_ROOT_INITIALIZER(&root);
-    for (i = 0; i < N; ++i)
+    int run;
+    for (run = 0; run < 1000; ++run)
     {
-        RB_INSERT(A_NODE_MAP, &root, node[i]);
-        get_rbtree_black_height(root.rb_root);
+        shuffle(node, N);
+        RB_ROOT root = RB_ROOT_INITIALIZER(&root);
+        for (i = 0; i < N; ++i)
+        {
+            RB_INSERT(A_NODE_MAP, &root, node[i]);
+            get_rbtree_black_height(root.rb_root);
+        }
+        validate_rbtree_sorted_order(&root, node_buf, N);
     }
-    validate_rbtree_sorted_order(&root, node_buf, N);
 }
 
 void print_rbtree_walk(RB_NODE *node, int depth)
@@ -212,33 +220,51 @@ void print_rbtree(RB_ROOT *root)
     print_rbtree_walk(root->rb_root, 0);
 }
 
-static void init_rbtree_remove_simple_4_node(RB_ROOT *root, A_NODE *node)
+static void init_rbtree(RB_ROOT *root, A_NODE *node, int N, int *seq)
 {
     int i;
     RB_ROOT_INIT(root);
-    for (i = 0; i < 4; ++i)
+    for (i = 0; i < N; ++i)
     {
         node[i].val = i + 1;
     }
-    RB_INSERT(A_NODE_MAP, root, &node[2]);
-    RB_INSERT(A_NODE_MAP, root, &node[0]);
-    RB_INSERT(A_NODE_MAP, root, &node[3]);
-    RB_INSERT(A_NODE_MAP, root, &node[1]);
+    for (i = 0; i < N; ++i)
+    {
+        RB_INSERT(A_NODE_MAP, root, &node[seq[i]]);
+    }
 }
 
 static void test_rbtree_remove_simple(void **state __UNUSED)
 {
     RB_ROOT root;
     A_NODE node[4];
+    int seq[] = {2, 0, 3, 1};
 
     /* Test case: left==NULL, right==NULL */
-    init_rbtree_remove_simple_4_node(&root, node);
+    init_rbtree(&root, node, 4, seq);
     RB_REMOVE(A_NODE_MAP, &root, 4);
     validate_rbtree_black_height(root.rb_root, 2);
 
     /* Test case: left==NULL, right!=NULL */
-    init_rbtree_remove_simple_4_node(&root, node);
+    init_rbtree(&root, node, 4, seq);
     RB_REMOVE(A_NODE_MAP, &root, 1);
+    validate_rbtree_black_height(root.rb_root, 2);
+}
+
+static void test_rbtree_remove_simple2(void **state __UNUSED)
+{
+    RB_ROOT root;
+    A_NODE node[10];
+    int seq[] = {5, 0, 9, 2, 6, 3, 7, 8, 4, 1};
+
+    /* Test case: left!=NULL, righ!=NULL; successor==node */
+    init_rbtree(&root, node, 10, seq);
+    RB_REMOVE(A_NODE_MAP, &root, 3);
+    validate_rbtree_black_height(root.rb_root, 2);
+
+    /* Test case: lef!=NULL, right!=NULL; successor!=node*/
+    init_rbtree(&root, node, 10, seq);
+    RB_REMOVE(A_NODE_MAP, &root, 8);
     validate_rbtree_black_height(root.rb_root, 2);
 }
 
@@ -253,6 +279,8 @@ static void test_rbtree_remove_random(void **state __UNUSED)
 {
     int i;
     const int N = 1000;
+    const int N2 = N / 4 * 3;
+    A_NODE sorted_node[N2];
     A_NODE node_buf[N];
     A_NODE *node[N];
     for (i = 0; i < N; ++i)
@@ -261,42 +289,44 @@ static void test_rbtree_remove_random(void **state __UNUSED)
         node[i] = &node_buf[i];
     }
 
-    shuffle(node, N);
-    /*
-    for (i = 0; i < N; ++i)
+    int run;
+    for (run = 0; run < 1000; ++run)
     {
-        printf(" %d", node[i]->val);
-    }
-    printf("\n");
-    // */
-    RB_ROOT root = RB_ROOT_INITIALIZER(&root);
-    for (i = 0; i < N; ++i)
-    {
-        RB_INSERT(A_NODE_MAP, &root, node[i]);
-        get_rbtree_black_height(root.rb_root);
-    }
-    shuffle(node, N);
-    const int N2 = N / 4 * 3;
-    /*
-    for(i = N2; i < N; ++i)
-    {
-        printf(" %d", node[i]->val);
-    }
-    printf("\n");
-    // */
-    for (i = N2; i < N; ++i)
-    {
-        RB_REMOVE(A_NODE_MAP, &root, node[i]->val);
-        get_rbtree_black_height(root.rb_root);
-    }
-    qsort(node, N2, sizeof(node[0]), node_cmp);
+        shuffle(node, N);
+        /*
+           for (i = 0; i < N; ++i)
+           {
+           printf(" %d", node[i]->val);
+           }
+           printf("\n");
+        // */
+        RB_ROOT root = RB_ROOT_INITIALIZER(&root);
+        for (i = 0; i < N; ++i)
+        {
+            RB_INSERT(A_NODE_MAP, &root, node[i]);
+            get_rbtree_black_height(root.rb_root);
+        }
+        shuffle(node, N);
+        /*
+           for(i = N2; i < N; ++i)
+           {
+           printf(" %d", node[i]->val);
+           }
+           printf("\n");
+        // */
+        for (i = N2; i < N; ++i)
+        {
+            RB_REMOVE(A_NODE_MAP, &root, node[i]->val);
+            get_rbtree_black_height(root.rb_root);
+        }
+        qsort(node, N2, sizeof(node[0]), node_cmp);
 
-    A_NODE sorted_node[N2];
-    for (i = 0; i < N2; ++i)
-    {
-        sorted_node[i].val = node[i]->val;
+        for (i = 0; i < N2; ++i)
+        {
+            sorted_node[i].val = node[i]->val;
+        }
+        validate_rbtree_sorted_order(&root, sorted_node, N2);
     }
-    validate_rbtree_sorted_order(&root, sorted_node, N2);
 }
 
 int main(void)
@@ -308,6 +338,7 @@ int main(void)
         cmocka_unit_test(test_rbtree_insert_right),
         cmocka_unit_test(test_rbtree_insert_random),
         cmocka_unit_test(test_rbtree_remove_simple),
+        cmocka_unit_test(test_rbtree_remove_simple2),
         cmocka_unit_test(test_rbtree_remove_random),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
