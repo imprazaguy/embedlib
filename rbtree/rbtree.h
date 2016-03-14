@@ -44,6 +44,16 @@ static inline void rb_set_parent_color(RB_NODE *node, RB_NODE *parent, int color
     node->rb_parent_color = ((intptr_t) parent | (color & 0x1));
 }
 
+static inline RB_NODE *rb_child(RB_NODE *node, int dir)
+{
+    return node->rb_child[dir];
+}
+
+static inline void rb_set_child(RB_NODE *node, int dir, RB_NODE *child)
+{
+    node->rb_child[dir] = child;
+}
+
 static inline int rb_color(RB_NODE *node)
 {
     return (node->rb_parent_color & 0x1);

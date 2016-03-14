@@ -1,4 +1,8 @@
+#ifdef RB_COMPACT
+#include "rbtree_compact.h"
+#else
 #include "rbtree.h"
+#endif
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
@@ -28,8 +32,8 @@ static int get_rbtree_black_height(RB_NODE *node)
         return 0;
     }
     int bh = (rb_color(node) == RB_BLACK ? 1 : 0);
-    int lbh = get_rbtree_black_height(node->rb_child[RB_LEFT]);
-    int rbh = get_rbtree_black_height(node->rb_child[RB_RIGHT]);
+    int lbh = get_rbtree_black_height(rb_child(node, RB_LEFT));
+    int rbh = get_rbtree_black_height(rb_child(node, RB_RIGHT));
     //printf("%d:(%d, %d, %d)\n", RB_ENTRY(node, A_NODE, node)->val, bh, lbh, rbh);
     assert_int_equal(lbh, rbh);
     return bh + lbh;
@@ -46,10 +50,10 @@ static void traverse_rbtree(RB_NODE *node, A_NODE *sorted_node, size_t *index)
     {
         return;
     }
-    traverse_rbtree(node->rb_child[RB_LEFT], sorted_node, index);
+    traverse_rbtree(rb_child(node, RB_LEFT), sorted_node, index);
     assert_int_equal(sorted_node[*index].val, RB_ENTRY(node, A_NODE, node)->val);
     *index += 1;
-    traverse_rbtree(node->rb_child[RB_RIGHT], sorted_node, index);
+    traverse_rbtree(rb_child(node, RB_RIGHT), sorted_node, index);
 }
 
 static void validate_rbtree_sorted_order(RB_ROOT *root, A_NODE *sorted_node, size_t n_node)
@@ -204,14 +208,14 @@ void print_rbtree_walk(RB_NODE *node, int depth)
     }
     else
     {
-        print_rbtree_walk(node->rb_child[RB_RIGHT], depth + 1);
+        print_rbtree_walk(rb_child(node, RB_RIGHT), depth + 1);
         for (i = 0; i < depth; ++i)
         {
             putchar('\t');
         }
         printf("%d(%c)\n", RB_ENTRY(node, A_NODE, node)->val,
                 rb_color(node) == RB_BLACK ? 'B' : 'R');
-        print_rbtree_walk(node->rb_child[RB_LEFT], depth + 1);
+        print_rbtree_walk(rb_child(node, RB_LEFT), depth + 1);
     }
 }
 
