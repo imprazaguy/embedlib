@@ -96,12 +96,12 @@ void rb_remove_color(RB_ROOT *root, RB_NODE *node, RB_PATH *rp)
             ++rp->cur;
             sibling = rb_child(parent, dir ^ 1);
         }
-        RB_NODE *nibling;
+        RB_NODE *nibling, *nibling2;
         if ((nibling = rb_child(sibling, dir ^ 1)) == NULL
                 || rb_color(nibling) == RB_BLACK)
         {
-            if ((nibling = rb_child(sibling, dir)) == NULL
-                    || rb_color(nibling) == RB_BLACK)
+            if ((nibling2 = rb_child(sibling, dir)) == NULL
+                    || rb_color(nibling2) == RB_BLACK)
             {
                 /* Case 2: Sibling is black and both its children are black.
                 */
@@ -111,24 +111,25 @@ void rb_remove_color(RB_ROOT *root, RB_NODE *node, RB_PATH *rp)
                 continue;
             }
 
-            /* Case 3: Sibling is black and its child in the same postition
-             * as node is red and its child in the opposite position as
-             * node is black.
+            /* Case 3: Sibling is black and its child in the same direction
+             * is red and its child in the opposite direction is black.
              */
-            rb_set_color(rb_child(sibling, dir), RB_BLACK);
-            assert(rb_child(sibling, dir) != NULL);
+            rb_set_color(nibling2, RB_BLACK);
+            assert(nibling2 != NULL);
             rb_set_color(sibling, RB_RED);
+            nibling = sibling;
             RB_NODE *t = rb_rotate(sibling, dir ^ 1);
             rb_set_child(parent, dir ^ 1, t);
             sibling = t;
         }
 
-        /* Case 4:
-        */
+        /* Case 4: Sibling is black and its child in the opposite direction
+         * is red.
+         */
         rb_set_color(sibling, rb_color(parent));
         rb_set_color(parent, RB_BLACK);
-        rb_set_color(rb_child(sibling, dir ^ 1), RB_BLACK);
-        assert(rb_child(sibling, dir ^ 1) != NULL);
+        rb_set_color(nibling, RB_BLACK);
+        assert(nibling != NULL);
         RB_NODE *t = rb_rotate(parent, dir);
         RB_NODE *gparent = rp->cur[-1].parent;
         if (gparent != NULL)
@@ -187,10 +188,9 @@ void rb_remove(RB_ROOT *root, RB_NODE *node, RB_PATH *rp)
         if (parent != node)
         {
             rb_set_child(parent, rp->cur->dir, child);
-            rb_set_child(successor, RB_RIGHT, rb_child(node, RB_RIGHT));
+            rb_copy_right_child(successor, node);
         }
-        rb_set_child(successor, RB_LEFT, rb_child(node, RB_LEFT));
-        rb_set_color(successor, rb_color(node));
+        rb_copy_left_child_color(successor, node);
         node_rpe->parent = successor;
         transplanter = successor;
     }

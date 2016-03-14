@@ -37,14 +37,34 @@ static inline void rb_set_child(RB_NODE *node, int dir, RB_NODE *child)
     node->rb_child_color[dir] = (((intptr_t) child) | (node->rb_child_color[dir] & 0x1));
 }
 
+static inline void rb_set_left_child_color(RB_NODE *node, RB_NODE *child, int color)
+{
+    node->rb_child_color[RB_LEFT] = ((intptr_t) child | color);
+}
+
+static inline void rb_copy_left_child_color(RB_NODE *dest, RB_NODE *src)
+{
+    dest->rb_child_color[RB_LEFT] = src->rb_child_color[RB_LEFT];
+}
+
+static inline void rb_set_right_child(RB_NODE *node, RB_NODE *child)
+{
+    node->rb_child_color[RB_RIGHT] = (intptr_t) child;
+}
+
+static inline void rb_copy_right_child(RB_NODE *dest, RB_NODE *src)
+{
+    dest->rb_child_color[RB_RIGHT] = src->rb_child_color[RB_RIGHT];
+}
+
 static inline int rb_color(RB_NODE *node)
 {
-    return (node->rb_child_color[RB_RIGHT] & 0x1);
+    return (node->rb_child_color[RB_LEFT] & 0x1);
 }
 
 static inline void rb_set_color(RB_NODE *node, int color)
 {
-    node->rb_child_color[RB_RIGHT] = ((node->rb_child_color[RB_RIGHT] & ~0x1) | color);
+    node->rb_child_color[RB_LEFT] = ((node->rb_child_color[RB_LEFT] & ~0x1) | color);
 }
 
 typedef struct RB_PATH_ENTRY_
@@ -107,9 +127,8 @@ RB_GENERATE_INSERT_PROTO(name, type) \
     { \
         root->rb_root = &node->field; \
     } \
-    rb_set_color(&node->field, RB_RED); \
-    rb_set_child(&node->field, RB_LEFT, NULL); \
-    rb_set_child(&node->field, RB_RIGHT, NULL); \
+    rb_set_left_child_color(&node->field, NULL, RB_RED); \
+    rb_set_right_child(&node->field, NULL); \
     rb_insert_color(root, &rp); \
     return node; \
 }
