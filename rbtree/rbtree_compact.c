@@ -209,3 +209,59 @@ void rb_remove(RB_ROOT *root, RB_NODE *node, RB_PATH *rp)
     }
 }
 
+RB_NODE *rb_iter(RB_ROOT *root, int dir, RB_PATH *rp)
+{
+    RB_PATH_INIT(rp);
+    RB_NODE *p = root->rb_root;
+    if (p != NULL)
+    {
+        RB_NODE *q;
+        while ((q = rb_child(p, dir)) != NULL)
+        {
+            ++rp->cur;
+            rp->cur->parent = p;
+            rp->cur->dir = dir;
+            p = q;
+        }
+    }
+    return p;
+}
+
+RB_NODE *rb_iter_next(RB_NODE *node, int dir,  RB_PATH *rp)
+{
+    RB_NODE *p = NULL;
+    if (node != NULL)
+    {
+        p = rb_child(node, dir);
+        if (p != NULL)
+        {
+            ++rp->cur;
+            rp->cur->parent = node;
+            rp->cur->dir = dir;
+
+            RB_NODE *q;
+            while ((q = rb_child(p, dir ^ 1)) != NULL)
+            {
+                ++rp->cur;
+                rp->cur->parent = p;
+                rp->cur->dir = (dir ^ 1);
+                p = q;
+            }
+        }
+        else
+        {
+            while (rp->cur->parent != NULL)
+            {
+                if (rp->cur->dir == (dir ^ 1))
+                {
+                    p = rp->cur->parent;
+                    --rp->cur;
+                    break;
+                }
+                --rp->cur;
+            }
+        }
+    }
+    return p;
+}
+

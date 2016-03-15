@@ -64,6 +64,32 @@ static inline void rb_set_color(RB_NODE *node, int color)
     node->rb_parent_color = ((node->rb_parent_color & ~0x1) | color);
 }
 
+#define RB_EMPTY(root) ((root)->rb_root == NULL)
+
+RB_NODE *rb_iter(RB_ROOT *root, int dir);
+
+static inline RB_NODE *rb_first(RB_ROOT *root)
+{
+    return rb_iter(root, RB_LEFT);
+}
+
+static inline RB_NODE *rb_last(RB_ROOT *root)
+{
+    return rb_iter(root, RB_RIGHT);
+}
+
+RB_NODE *rb_iter_next(RB_NODE *node, int dir);
+
+static inline RB_NODE *rb_next(RB_NODE *node)
+{
+    return rb_iter_next(node, RB_RIGHT);
+}
+
+static inline RB_NODE *rb_prev(RB_NODE *node)
+{
+    return rb_iter_next(node, RB_LEFT);
+}
+
 void rb_insert_color(RB_ROOT *root, RB_NODE *node);
 void rb_remove(RB_ROOT *root, RB_NODE *node);
 

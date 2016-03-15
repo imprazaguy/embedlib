@@ -298,11 +298,11 @@ static void test_rbtree_remove_random(void **state __UNUSED)
     {
         shuffle(node, N);
         /*
-           for (i = 0; i < N; ++i)
-           {
+        for (i = 0; i < N; ++i)
+        {
            printf(" %d", node[i]->val);
-           }
-           printf("\n");
+        }
+        printf("\n");
         // */
         RB_ROOT root = RB_ROOT_INITIALIZER(&root);
         for (i = 0; i < N; ++i)
@@ -312,11 +312,11 @@ static void test_rbtree_remove_random(void **state __UNUSED)
         }
         shuffle(node, N);
         /*
-           for(i = N2; i < N; ++i)
-           {
+        for(i = N2; i < N; ++i)
+        {
            printf(" %d", node[i]->val);
-           }
-           printf("\n");
+        }
+        printf("\n");
         // */
         for (i = N2; i < N; ++i)
         {
@@ -333,6 +333,87 @@ static void test_rbtree_remove_random(void **state __UNUSED)
     }
 }
 
+static void test_rbtree_iter(void ** state __UNUSED)
+{
+    int i;
+    const int N = 10;
+    A_NODE node_buf[N];
+    A_NODE *node[N];
+    for (i = 0; i < N; ++i)
+    {
+        node_buf[i].val = i + 1;
+        node[i] = &node_buf[i];
+    }
+    shuffle(node, N);
+
+    RB_ROOT root = RB_ROOT_INITIALIZER(&root);
+    for (i = 0; i < N; ++i)
+    {
+        RB_INSERT(A_NODE_MAP, &root, node[i]);
+    }
+
+    /* Test rb_first(), rb_next() */
+    RB_NODE *iter;
+#ifdef RB_COMPACT
+    RB_PATH rp;
+    iter = rb_first(&root, &rp);
+#else
+    iter = rb_first(&root);
+#endif
+    i = 0;
+    while (iter != NULL)
+    {
+        assert_int_equal(node_buf[i].val, RB_ENTRY(iter, A_NODE, node)->val);
+#ifdef RB_COMPACT
+        iter = rb_next(iter, &rp);
+#else
+        iter = rb_next(iter);
+#endif
+        ++i;
+    }
+    assert_int_equal(i, N);
+
+    /* Test rb_last(), rb_prev() */
+#ifdef RB_COMPACT
+    iter = rb_last(&root, &rp);
+#else
+    iter = rb_last(&root);
+#endif
+    i = N - 1;
+    while (iter != NULL)
+    {
+        assert_int_equal(node_buf[i].val, RB_ENTRY(iter, A_NODE, node)->val);
+#ifdef RB_COMPACT
+        iter = rb_prev(iter, &rp);
+#else
+        iter = rb_prev(iter);
+#endif
+        --i;
+    }
+    assert_int_equal(i, -1);
+
+    /* Test rb_find() */
+    A_NODE *t;
+#ifdef RB_COMPACT
+    t = RB_FIND(A_NODE_MAP, &root, N / 2, &rp);
+#else
+    t = RB_FIND(A_NODE_MAP, &root, N / 2);
+#endif
+    iter = &t->node;
+    i = N / 2 - 1;
+    while (iter != NULL)
+    {
+        assert_int_equal(node_buf[i].val, RB_ENTRY(iter, A_NODE, node)->val);
+#ifdef RB_COMPACT
+        iter = rb_next(iter, &rp);
+#else
+        iter = rb_next(iter);
+#endif
+        ++i;
+    }
+    assert_int_equal(i, N);
+}
+
 int main(void)
 {
     srand(time(NULL));
@@ -344,6 +425,7 @@ int main(void)
         cmocka_unit_test(test_rbtree_remove_simple),
         cmocka_unit_test(test_rbtree_remove_simple2),
         cmocka_unit_test(test_rbtree_remove_random),
+        cmocka_unit_test(test_rbtree_iter),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

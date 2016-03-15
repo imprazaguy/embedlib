@@ -82,6 +82,32 @@ typedef struct RB_PATH_
 #define RB_PATH_INIT(rp) \
     do { (rp)->cur = (rp)->path; (rp)->cur->parent = NULL; } while(0)
 
+#define RB_EMPTY(root) ((root)->rb_root == NULL)
+
+RB_NODE *rb_iter(RB_ROOT *root, int dir, RB_PATH *rp);
+
+static inline RB_NODE *rb_first(RB_ROOT *root, RB_PATH *rp)
+{
+    return rb_iter(root, RB_LEFT, rp);
+}
+
+static inline RB_NODE *rb_last(RB_ROOT *root, RB_PATH *rp)
+{
+    return rb_iter(root, RB_RIGHT, rp);
+}
+
+RB_NODE *rb_iter_next(RB_NODE *node, int dir, RB_PATH *rp);
+
+static inline RB_NODE *rb_next(RB_NODE *node, RB_PATH *rp)
+{
+    return rb_iter_next(node, RB_RIGHT, rp);
+}
+
+static inline RB_NODE *rb_prev(RB_NODE *node, RB_PATH *rp)
+{
+    return rb_iter_next(node, RB_LEFT, rp);
+}
+
 void rb_insert_color(RB_ROOT *root, RB_PATH *rp);
 void rb_remove(RB_ROOT *root, RB_NODE *node, RB_PATH *rp);
 
