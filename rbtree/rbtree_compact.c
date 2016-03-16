@@ -1,5 +1,4 @@
 #include "rbtree_compact.h"
-#include <assert.h>
 
 
 RB_NODE *rb_rotate(RB_NODE *node, int direction)
@@ -104,7 +103,7 @@ void rb_remove_color(RB_ROOT *root, RB_NODE *node, RB_PATH *rp)
                     || rb_color(nibling2) == RB_BLACK)
             {
                 /* Case 2: Sibling is black and both its children are black.
-                */
+                 */
                 rb_set_color(sibling, RB_RED);
                 node = parent;
                 --rp->cur;
@@ -115,7 +114,6 @@ void rb_remove_color(RB_ROOT *root, RB_NODE *node, RB_PATH *rp)
              * is red and its child in the opposite direction is black.
              */
             rb_set_color(nibling2, RB_BLACK);
-            assert(nibling2 != NULL);
             rb_set_color(sibling, RB_RED);
             nibling = sibling;
             RB_NODE *t = rb_rotate(sibling, dir ^ 1);
@@ -129,7 +127,6 @@ void rb_remove_color(RB_ROOT *root, RB_NODE *node, RB_PATH *rp)
         rb_set_color(sibling, rb_color(parent));
         rb_set_color(parent, RB_BLACK);
         rb_set_color(nibling, RB_BLACK);
-        assert(nibling != NULL);
         RB_NODE *t = rb_rotate(parent, dir);
         RB_NODE *gparent = rp->cur[-1].parent;
         if (gparent != NULL)

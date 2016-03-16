@@ -412,6 +412,47 @@ static void test_rbtree_iter(void ** state __UNUSED)
         ++i;
     }
     assert_int_equal(i, N);
+
+    /* Test rb_remove() directly on iterator */
+    int del_i;
+    for (del_i = 0; del_i < i; ++del_i)
+    {
+        RB_ROOT_INIT(&root);
+        for (i = 0; i < N; ++i)
+        {
+            RB_INSERT(A_NODE_MAP, &root, node[i]);
+        }
+
+#ifdef RB_COMPACT
+        iter = rb_first(&root, &rp);
+#else
+        iter = rb_first(&root);
+#endif
+        for (i = 0; i < del_i; ++i)
+        {
+#ifdef RB_COMPACT
+            iter = rb_next(iter, &rp);
+#else
+            iter = rb_next(iter);
+#endif
+        }
+        assert_int_equal(node_buf[del_i].val, RB_ENTRY(iter, A_NODE, node)->val);
+#ifdef RB_COMPACT
+        rb_remove(&root, iter, &rp);
+#else
+        rb_remove(&root, iter);
+#endif
+        A_NODE sorted_node[N - 1];
+        for (i = 0; i < del_i; ++i)
+        {
+            sorted_node[i].val = i + 1;
+        }
+        for (i = del_i + 1; i < N; ++i)
+        {
+            sorted_node[i - 1].val = i + 1;
+        }
+        validate_rbtree_sorted_order(&root, sorted_node, N - 1);
+    }
 }
 
 int main(void)
