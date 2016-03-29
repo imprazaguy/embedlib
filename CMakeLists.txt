@@ -7,6 +7,15 @@ set(BUNDLE_DIR "${PROJECT_SOURCE_DIR}/bundle")
 set(BUNDLE_INCLUDE_DIR "${BUNDLE_DIR}/include")
 set(BUNDLE_LIB_DIR "${BUNDLE_DIR}/lib")
 
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+	configure_file("${PROJECT_SOURCE_DIR}/Doxyfile.in"
+		"${PROJECT_BINARY_DIR}/Doxyfile")
+	add_custom_target(doc
+		${DOXYGEN_EXECUTABLE} "${PROJECT_BINARY_DIR}/Doxyfile"
+		WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
+endif()
+
 option(HAS_UNIT_TEST "Enable/disable unit tests." OFF)
 if(HAS_UNIT_TEST)
 	enable_testing()
