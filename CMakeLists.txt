@@ -25,4 +25,5 @@ endif()
 add_subdirectory(depends)
 include_directories("${BUNDLE_INCLUDE_DIR}")
 
+add_subdirectory(array_utils)
 add_subdirectory(rbtree)
