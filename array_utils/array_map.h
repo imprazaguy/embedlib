@@ -75,6 +75,12 @@ do { \
     (map)->amp_size = (siz); \
     (map)->amp_len = 0; \
 } while (0)
+
+/**
+ * @brief Clear a array map pool.
+ * @param map  Pointer to the array map pool.
+ */
+#define ARRAY_MAP_POOL_CLEAR(map) ((map)->amp_len = 0)
 /**@}*/
 
 #define ARRAY_MAP_POOL_BSEARCH(name, map, key, index) name##_array_map_pool_bsearch(map, key, index)
@@ -300,6 +306,12 @@ do { \
     (map)->am_size = (siz); \
     (map)->am_len = 0; \
 } while (0)
+
+/**
+ * @brief Clear a array map.
+ * @param map  Pointer to the array map.
+ */
+#define ARRAY_MAP_CLEAR(map) ((map)->am_len = 0)
 /**@}*/
 
 #define ARRAY_MAP_BSEARCH(name, map, key, index) name##_array_map_bsearch(map, key, index)
