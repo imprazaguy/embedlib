@@ -27,6 +27,7 @@ SOFTWARE.
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #define ARRAY_QUEUE_TYPE_IMPL(name, type, size_type) \
 typedef struct \
@@ -95,5 +96,21 @@ do { \
 
 #define ARRAY_QUEUE_ENQUEUE_RET(q, data, ret) _ARRAY_QUEUE_ENQUEUE_IMPL(q, data, _ARRAY_QUEUE_RET, ret)
 #define ARRAY_QUEUE_DEQUEUE_RET(q, pdata, ret) _ARRAY_QUEUE_DEQUEUE_IMPL(q, pdata, _ARRAY_QUEUE_RET, ret)
+
+#define ARRAY_QUEUE_ITER_END(q) (NULL)
+#define ARRAY_QUEUE_ITER(q) (ARRAY_QUEUE_IS_EMPTY(q) ? ARRAY_QUEUE_ITER_END(q): &(q)->aq_item[(q)->aq_front])
+#define ARRAY_QUEUE_ITER_NEXT(q, iter) \
+do { \
+    ptrdiff_t i = (iter) - (q)->aq_item; \
+    i = (i + 1) % (q)->aq_size; \
+    if (i == (q)->aq_back) \
+    { \
+        (iter) = ARRAY_QUEUE_ITER_END(q); \
+    } \
+    else \
+    { \
+        (iter) = &(q)->aq_item[i]; \
+    } \
+} while (0)
 
 #endif /* ARRAY_QUEUE_H_ */

@@ -31,7 +31,7 @@ static void test_array_queue(void **state __UNUSED)
 
     bool ret;
     int i;
-    int test_data[ITEM_BUF_NUM] = { 1, 2, 3, 4};
+    int test_data[ITEM_BUF_NUM] = { 1, 2, 3, 4 };
 
     /* Test case: Enqueue items when queue is not full */
     for (i = 0; i < ITEM_BUF_NUM; ++i)
@@ -78,10 +78,58 @@ static void test_array_queue(void **state __UNUSED)
     }
 }
 
+static void test_array_queue_iterator(void **state __UNUSED)
+{
+    ARRAY_QUEUE_INIT(&item_queue, item_buf, ITEM_BUF_NUM);
+
+    int i;
+
+    /* Test case: Iterate empty queue */
+    A_ITEM *iter = ARRAY_QUEUE_ITER(&item_queue);
+    while (iter != ARRAY_QUEUE_ITER_END(&item_queue))
+    {
+        assert_true(0); /* shouldn't go here */
+        ARRAY_QUEUE_ITER_NEXT(&item_queue, iter);
+    }
+
+    /* Test case: Iterate non-full queue */
+    for (i = 0; i < ITEM_BUF_NUM / 2; ++i)
+    {
+        ARRAY_QUEUE_ENQUEUE(&item_queue, i + 1);
+    }
+    assert_false(ARRAY_QUEUE_IS_FULL(&item_queue));
+    i = 0;
+    iter = ARRAY_QUEUE_ITER(&item_queue);
+    while (iter != ARRAY_QUEUE_ITER_END(&item_queue))
+    {
+        assert_int_equal(*iter, item_queue_get_item_at(&item_queue, i));
+        ++i;
+        ARRAY_QUEUE_ITER_NEXT(&item_queue, iter);
+    }
+    assert_int_equal(i, ITEM_BUF_NUM / 2);
+
+    /* Test case: Iterate full queue */
+    for (i = ITEM_BUF_NUM / 2; i < ITEM_BUF_NUM; ++i)
+    {
+        ARRAY_QUEUE_ENQUEUE(&item_queue, i + 1);
+    }
+    assert_true(ARRAY_QUEUE_IS_FULL(&item_queue));
+    i = 0;
+    iter = ARRAY_QUEUE_ITER(&item_queue);
+    while (iter != ARRAY_QUEUE_ITER_END(&item_queue))
+    {
+        assert_int_equal(*iter, item_queue_get_item_at(&item_queue, i));
+        ++i;
+        ARRAY_QUEUE_ITER_NEXT(&item_queue, iter);
+    }
+    assert_int_equal(i, ITEM_BUF_NUM);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
             cmocka_unit_test(test_array_queue),
+            cmocka_unit_test(test_array_queue_iterator),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }
