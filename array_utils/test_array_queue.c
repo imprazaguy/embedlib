@@ -125,11 +125,92 @@ static void test_array_queue_iterator(void **state __UNUSED)
     assert_int_equal(i, ITEM_BUF_NUM);
 }
 
+static void test_array_queue_iterator_remove(void **state __UNUSED)
+{
+    typedef struct TEST_DATA_STEP_ {
+        int n_data;
+        int data[ITEM_BUF_NUM];
+    } TEST_DATA_STEP;
+    typedef struct TEST_DATA_ {
+        int n_step;
+        TEST_DATA_STEP step[ITEM_BUF_NUM];
+    } TEST_DATA;
+    int i;
+    TEST_DATA test_data[ITEM_BUF_NUM] = {
+            [0] = {
+                    4,
+                    {
+                            { 3, { 2, 3, 4} },
+                            { 2, { 3, 4 } },
+                            { 1, { 4 } },
+                            { 0, { 0 } }
+                    }
+            },
+            [1] = {
+                    3,
+                    {
+                            { 3, { 1, 3, 4 } },
+                            { 2, { 1, 4 } },
+                            { 1, { 1 } }
+                    }
+            },
+            [2] = {
+                    2,
+                    {
+                            { 3, { 1, 2, 4} },
+                            { 2, { 1, 2 } }
+                    }
+            },
+            [3] = {
+                    1,
+                    {
+                            { 3, { 1, 2, 3 } }
+                    }
+            },
+    };
+
+    /* Test case: From i = 0 to ITEM_BUF_NUM - 1, remove item from index i to
+     * ITEM_BUF_NUM - 1 one by one.
+     */
+    int case_i;
+    for (case_i = 0; case_i < ITEM_BUF_NUM; ++case_i)
+    {
+        ARRAY_QUEUE_INIT(&item_queue, item_buf, ITEM_BUF_NUM);
+        for (i = 0; i < ITEM_BUF_NUM; ++i)
+        {
+            ARRAY_QUEUE_ENQUEUE(&item_queue, i + 1);
+        }
+
+        A_ITEM *iter = ARRAY_QUEUE_ITER(&item_queue);
+        for (i = 0; i < case_i; ++i)
+        {
+            ARRAY_QUEUE_ITER_NEXT(&item_queue, iter);
+        }
+
+        int n_steps = 0;
+        while (iter != ARRAY_QUEUE_ITER_END(&item_queue))
+        {
+            ARRAY_QUEUE_ITER_REMOVE(&item_queue, iter);
+
+            assert_int_equal(item_queue.aq_len,
+                    test_data[case_i].step[n_steps].n_data);
+            for (i = 0; i < test_data[case_i].step[n_steps].n_data; ++i)
+            {
+                assert_int_equal(item_queue_get_item_at(&item_queue, i),
+                        test_data[case_i].step[n_steps].data[i]);
+            }
+            ++n_steps;
+        }
+        assert_int_equal(n_steps, test_data[case_i].n_step);
+    }
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
             cmocka_unit_test(test_array_queue),
             cmocka_unit_test(test_array_queue_iterator),
+            cmocka_unit_test(test_array_queue_iterator_remove),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

@@ -112,5 +112,27 @@ do { \
         (iter) = &(q)->aq_item[i]; \
     } \
 } while (0)
+#define ARRAY_QUEUE_ITER_REMOVE(q, iter) \
+do { \
+    ptrdiff_t idx = (iter) - (q)->aq_item; \
+    ptrdiff_t i, i_next; \
+    i = idx; \
+    i_next = (i + 1) % (q)->aq_size; \
+    if (i_next == (q)->aq_back) \
+    { \
+        (iter) = ARRAY_QUEUE_ITER_END(q); \
+    } \
+    else \
+    { \
+        do \
+        { \
+            (q)->aq_item[i] = (q)->aq_item[i_next]; \
+            i = i_next; \
+            i_next = (i + 1) % (q)->aq_size; \
+        } while (i_next != (q)->aq_back); \
+    } \
+    (q)->aq_back = i; \
+    --(q)->aq_len; \
+} while (0)
 
 #endif /* ARRAY_QUEUE_H_ */
