@@ -127,49 +127,27 @@ bool name##_array_map_pool_bsearch(map_type *map, key_type key, int *index)
 #define ARRAY_MAP_POOL_GENERATE_BSEARCH(name, map_type, key_type, key_cmp) \
 ARRAY_MAP_POOL_GENERATE_BSEARCH_PROTO(name, map_type, key_type) \
 { \
-    if (map->amp_len == 0) \
+    int low = 0; \
+    int high = map->amp_len - 1; \
+    while (low <= high) \
     { \
-        *index = 0; \
-    } \
-    else \
-    { \
-        int low = 0; \
-        int high = map->amp_len - 1; \
-        while (low < high) \
+        int med = (low + high) / 2; \
+        int c = key_cmp(map->amp_item[med], key); \
+        if (c < 0) \
         { \
-            int med = (low + high) / 2; \
-            int c = key_cmp(map->amp_item[med], key); \
-            if (c < 0) \
-            { \
-                low = med + 1; \
-            } \
-            else if (c > 0) \
-            { \
-                high = med - 1; \
-            } \
-            else \
-            { \
-                *index = med; \
-                return true; \
-            } \
+            low = med + 1; \
         } \
+        else if (c > 0) \
         { \
-            int c = key_cmp(map->amp_item[low], key); \
-            if (c == 0) \
-            { \
-                *index = low; \
-                return true; \
-            } \
-            else if (c < 0) \
-            { \
-                *index = low + 1; \
-            } \
-            else \
-            { \
-                *index = low; \
-            } \
+            high = med - 1; \
+        } \
+        else \
+        { \
+            *index = med; \
+            return true; \
         } \
     } \
+    *index = low; \
     return false; \
 }
 
@@ -355,49 +333,27 @@ bool name##_array_map_bsearch(map_type *map, key_type key, int *index)
 #define ARRAY_MAP_GENERATE_BSEARCH(name, map_type, key_type, key_cmp) \
 ARRAY_MAP_GENERATE_BSEARCH_PROTO(name, map_type, key_type) \
 { \
-    if (map->am_len == 0) \
+    int low = 0; \
+    int high = map->am_len - 1; \
+    while (low <= high) \
     { \
-        *index = 0; \
-    } \
-    else \
-    { \
-        int low = 0; \
-        int high = map->am_len - 1; \
-        while (low < high) \
+        int med = (low + high) / 2; \
+        int c = key_cmp(map->am_item[med], key); \
+        if (c < 0) \
         { \
-            int med = (low + high) / 2; \
-            int c = key_cmp(map->am_item[med], key); \
-            if (c < 0) \
-            { \
-                low = med + 1; \
-            } \
-            else if (c > 0) \
-            { \
-                high = med - 1; \
-            } \
-            else \
-            { \
-                *index = med; \
-                return true; \
-            } \
+            low = med + 1; \
         } \
+        else if (c > 0) \
         { \
-            int c = key_cmp(map->am_item[low], key); \
-            if (c == 0) \
-            { \
-                *index = low; \
-                return true; \
-            } \
-            else if (c < 0) \
-            { \
-                *index = low + 1; \
-            } \
-            else \
-            { \
-                *index = low; \
-            } \
+            high = med - 1; \
+        } \
+        else \
+        { \
+            *index = med; \
+            return true; \
         } \
     } \
+    *index = low; \
     return false; \
 }
 
